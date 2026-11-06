@@ -184,7 +184,13 @@ class CelestoSandboxRunner:
                 # Prepare shell command inside Linux guest
                 if language.lower() in ("python", "py"):
                     escaped_code = code.replace("'", "'\\''")
-                    guest_cmd = f"python3 -c '{escaped_code}'"
+                    guest_cmd = (
+                        "if ! command -v python3 >/dev/null 2>&1; then "
+                        "apt-get update -qq && "
+                        "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3; "
+                        "fi && "
+                        f"python3 -c '{escaped_code}'"
+                    )
                 else:
                     guest_cmd = code
 

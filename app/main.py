@@ -342,8 +342,14 @@ def index_dashboard():
 
           const duration = Number(data.total_wall_clock_s || 0);
           statusDiv.innerText = `Finished in ${duration.toFixed(2)}s`;
-          outPre.innerText = JSON.stringify(data, null, 2);
+          const step = data.steps?.[data.steps.length - 1];
+          const output = step?.tool_output?.stdout?.trim() || 'No output returned';
 
+          outPre.innerText =
+            `Task: ${data.task}\n` +
+            `Status: ${data.state}\n` +
+            `Execution time: ${Number(data.total_wall_clock_s).toFixed(2)}s\n\n` +
+            `Output:\n${output}`;
         } catch (err) {
           statusDiv.innerText = 'Execution failed';
           outPre.innerText = err.message;

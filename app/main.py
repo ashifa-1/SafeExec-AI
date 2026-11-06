@@ -370,7 +370,7 @@ def index_dashboard():
           outPre.innerText = JSON.stringify(data, null, 2);
 
         } catch (err) {
-          outPre.innerText = 'Execution failed:\n' + err.message;
+          outPre.innerText = 'Execution failed: ' + err.message;
 
         } finally {
           await loadRuns();

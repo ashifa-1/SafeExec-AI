@@ -1,0 +1,16 @@
+{
+  "capabilities": [
+    {
+      "name": "Workspace Persistence Across Sandbox Restarts",
+      "sdk_interface": "celesto.sdk.CloudComputer(lifetime='persistent')",
+      "evidence_path": "reports/evidence/persistence_evidence.txt",
+      "explanation": "Demonstrates stopping and resuming an isolated Celesto sandbox while maintaining full workspace file and environmental state across lifecycles, enabling multi-step agent recovery without compute repetition."
+    },
+    {
+      "name": "Native Command Lifecycle Veto Callbacks",
+      "sdk_interface": "celesto.callbacks.Callback.on_pre_run",
+      "evidence_path": "reports/evidence/callback_veto_evidence.txt",
+      "explanation": "Enforces strict pre-execution validation using Celesto's native callback hooks; raising CommandBlockedError aborts dangerous shell commands and exfiltration before they ever reach the guest microVM."
+    }
+  ]
+}

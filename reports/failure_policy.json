@@ -1,0 +1,9 @@
+{
+  "failed_step": 7,
+  "total_steps": 10,
+  "policy": "resume",
+  "rationale": "The SafeExec AI architecture selects the 'resume' recovery policy because Celesto Cloud sandboxes support workspace persistence across guest restarts. When step 7 encountered a synthetic environmental fault, preserving guest disk state allowed the agent to resume execution from step 6 output without expensive re-initialization or re-running compute-heavy prior steps, maximizing efficiency while maintaining security.",
+  "recovery_succeeded": true,
+  "trace_path": "reports/failure_trace.jsonl",
+  "timestamp": "2026-11-06T10:24:24.675691+00:00"
+}

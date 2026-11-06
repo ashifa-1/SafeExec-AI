@@ -1,0 +1,4 @@
+Celesto Persistence Verification Evidence
+State: File /workspace/persistent_data.txt written before stop.
+Action: Sandbox stopped and resumed.
+Result: File content verified identical upon guest restart.

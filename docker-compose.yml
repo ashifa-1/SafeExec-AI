@@ -1,0 +1,56 @@
+services:
+  ledger:
+    image: postgres:16-alpine
+    container_name: safeexec_ledger
+    environment:
+      POSTGRES_USER: safeexec
+      POSTGRES_PASSWORD: safeexec_secret
+      POSTGRES_DB: safeexec_ledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./seeds/01_runs.sql:/docker-entrypoint-initdb.d/01_runs.sql:ro
+      - ledger_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safeexec -d safeexec_ledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: safeexec_api
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://safeexec:safeexec_secret@ledger:5432/safeexec_ledger
+      - DB_HOST=ledger
+      - DB_PORT=5432
+      - DB_USER=safeexec
+      - DB_PASSWORD=safeexec_secret
+      - DB_NAME=safeexec_ledger
+      - PORT=8080
+      - HOST=0.0.0.0
+      - CELESTO_API_KEY=${CELESTO_API_KEY:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.openai.com/v1}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    depends_on:
+      ledger:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  ledger_data:

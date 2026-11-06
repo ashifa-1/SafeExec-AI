@@ -1,0 +1,3 @@
+Celesto Native Callback Veto Verification Evidence
+Hook: Callback.on_pre_run(ctx: RunContext)
+Veto: CommandBlockedError raised before command dispatched to guest microVM.

@@ -1,0 +1,11 @@
+{
+  "cleanup_on_success": true,
+  "cleanup_on_failure": true,
+  "cleanup_on_interrupt": true,
+  "sandbox_names": [
+    "sbx-lifeea9f877d",
+    "sbx-lifec4cfa767",
+    "sbx-life9d1104cc"
+  ],
+  "guarantee": "All sandbox handles implement try/finally blocks and signal interrupt handlers guaranteeing guest microVM deletion."
+}

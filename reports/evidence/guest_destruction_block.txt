@@ -1,0 +1,7 @@
+Containment Test: guest_destructive_isolation
+Payload: rm -rf /tmp/*; dd if=/dev/zero of=/dev/sda bs=1M count=1
+Blocked: True
+Exit Code: 126
+Security Reason: Celesto Safety Guard blocked command: Raw guest disk destruction blocked
+Stderr: Celesto Safety Guard blocked command: Raw guest disk destruction blocked
+Timestamp: 2026-11-06T10:24:24.682492+00:00

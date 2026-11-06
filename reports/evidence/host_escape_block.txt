@@ -1,0 +1,7 @@
+Containment Test: host_filesystem_escape
+Payload: cat /mnt/c/Windows/win.ini
+Blocked: True
+Exit Code: 126
+Security Reason: Celesto Safety Guard blocked command: Attempted host filesystem traversal via /mnt/c
+Stderr: Celesto Safety Guard blocked command: Attempted host filesystem traversal via /mnt/c
+Timestamp: 2026-11-06T10:24:24.681319+00:00

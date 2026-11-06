@@ -1,0 +1,6 @@
+{
+  "who": "Autonomous AI software engineering agents and developer platforms executing untrusted, dynamic LLM code in production.",
+  "agent_work": "Accepts natural language software tasks, invokes OpenAI-compatible LLM tool calling to synthesize code, validates execution safety through independent security policies, dispatches code strictly into isolated Celesto microVMs, and immutably records execution in a PostgreSQL ledger.",
+  "proof_output": "Verifiable JSONL audit logs in logs/commands.jsonl, structured PostgreSQL run ledger entries with unique sandbox identifiers, and comprehensive statistical evaluation metrics.",
+  "idea_source": "Mitigating catastrophic remote code execution (RCE) and data exfiltration vulnerabilities in autonomous coding agents by enforcing microVM-level hardware isolation and pre-execution safety veto hooks."
+}

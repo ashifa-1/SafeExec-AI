@@ -242,71 +242,119 @@ def index_dashboard():
     </div>
   </div>
 
+
   <script>
-    async function loadRuns() {
-      try {
-        const res = await fetch('/api/runs');
-        const runs = await res.json();
+      // Safely read JSON or plain-text server responses
+      async function readResponse(res) {
+        const text = await res.text();
+        let data;
+
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch {
+          data = { detail: text || 'Empty server response' };
+        }
+
+        if (!res.ok) {
+          const message =
+            typeof data === 'string'
+              ? data
+              : data.detail || data.error || `HTTP ${res.status}`;
+
+          throw new Error(`${res.status}: ${message}`);
+        }
+
+        return data;
+      }
+
+      async function loadRuns() {
         const tbody = document.getElementById('runsBody');
-        tbody.innerHTML = '';
-        runs.forEach(r => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td><code>${r.run_id}</code></td>
-            <td><code>${r.sandbox_name}</code></td>
-            <td>${r.problem_id}</td>
-            <td><span style="color: #38bdf8">${r.execution_target}</span></td>
-            <td><span style="color: ${r.state === 'succeeded' ? '#4ade80' : '#f87171'}">${r.state}</span></td>
-            <td>${r.success !== null ? (r.success ? '&#10003; True' : '&#10007; False') : '-'}</td>
-            <td>${r.execution_time ? r.execution_time.toFixed(3) : '-'}</td>
-          `;
-          tbody.appendChild(row);
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    }
 
-    async function runAgentTask() {
-      const task = document.getElementById('taskInput').value;
-      const statusDiv = document.getElementById('agentStatus');
-      const outPre = document.getElementById('agentOutput');
-      statusDiv.innerText = 'Dispatching to agent & Celesto sandbox...';
-      try {
-        const res = await fetch('/api/agent/run', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ task })
-        });
-        const data = await res.json();
-        statusDiv.innerText = `Finished in ${data.total_wall_clock_s.toFixed(2)}s`;
-        outPre.innerText = JSON.stringify(data, null, 2);
-        loadRuns();
-      } catch (err) {
-        statusDiv.innerText = 'Failed: ' + err;
-      }
-    }
+        try {
+          const res = await fetch('/api/runs');
+          const runs = await readResponse(res);
 
-    async function runSandboxCode() {
-      const code = document.getElementById('codeInput').value;
-      const outPre = document.getElementById('codeOutput');
-      outPre.innerText = 'Executing in Celesto sandbox...';
-      try {
-        const res = await fetch('/api/execute', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ code })
-        });
-        const data = await res.json();
-        outPre.innerText = JSON.stringify(data, null, 2);
-        loadRuns();
-      } catch (err) {
-        outPre.innerText = 'Error: ' + err;
-      }
-    }
+          tbody.innerHTML = '';
 
-    window.onload = loadRuns;
+          runs.forEach(r => {
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+              <td><code>${r.run_id}</code></td>
+              <td><code>${r.sandbox_name}</code></td>
+              <td>${r.problem_id}</td>
+              <td><span style="color: #38bdf8">${r.execution_target}</span></td>
+              <td><span style="color: ${r.state === 'succeeded' ? '#4ade80' : '#f87171'}">${r.state}</span></td>
+              <td>${r.success !== null ? (r.success ? '&#10003; True' : '&#10007; False') : '-'}</td>
+              <td>${r.execution_time ? r.execution_time.toFixed(3) : '-'}</td>
+            `;
+
+            tbody.appendChild(row);
+          });
+
+        } catch (err) {
+          console.error('Ledger error:', err);
+          tbody.innerHTML = '<tr><td colspan="7">Unable to load execution history.</td></tr>';
+        }
+      }
+
+      async function runAgentTask() {
+        const task = document.getElementById('taskInput').value;
+        const statusDiv = document.getElementById('agentStatus');
+        const outPre = document.getElementById('agentOutput');
+
+        statusDiv.innerText = 'Dispatching to agent and Celesto sandbox...';
+        outPre.innerText = 'Please wait...';
+
+        try {
+          const res = await fetch('/api/agent/run', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ task })
+          });
+
+          const data = await readResponse(res);
+
+          const duration = Number(data.total_wall_clock_s || 0);
+          statusDiv.innerText = `Finished in ${duration.toFixed(2)}s`;
+          outPre.innerText = JSON.stringify(data, null, 2);
+
+        } catch (err) {
+          statusDiv.innerText = 'Execution failed';
+          outPre.innerText = err.message;
+
+        } finally {
+          await loadRuns();
+        }
+      }
+
+      async function runSandboxCode() {
+        const code = document.getElementById('codeInput').value;
+        const outPre = document.getElementById('codeOutput');
+
+        outPre.innerText = 'Executing in Celesto sandbox...';
+
+        try {
+          const res = await fetch('/api/execute', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ code })
+          });
+
+          const data = await readResponse(res);
+          outPre.innerText = JSON.stringify(data, null, 2);
+
+        } catch (err) {
+          outPre.innerText = 'Execution failed:\n' + err.message;
+
+        } finally {
+          await loadRuns();
+        }
+      }
+
+      window.onload = loadRuns;
   </script>
+
 </body>
 </html>"""
     return HTMLResponse(content=html_content)

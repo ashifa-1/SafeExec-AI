@@ -188,7 +188,7 @@ class CelestoSandboxRunner:
                 else:
                     guest_cmd = code
 
-                result = computer_handle.run(guest_cmd, timeout=float(timeout_s))
+                result = computer_handle.run(guest_cmd, timeout=int(timeout_s))
                 wall_clock_s = time.perf_counter() - wall_clock_start
 
                 mock_ctx.result = result

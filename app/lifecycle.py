@@ -43,21 +43,25 @@ class SandboxLifecycleManager:
             self.active_sandboxes[sandbox_name]["updated_at"] = datetime.now(timezone.utc).isoformat()
         logger.info(f"Sandbox {sandbox_name} transitioned to {new_state.value}")
         return new_state
-
     def cleanup_sandbox(self, sandbox_name: str, guest_handle: Any = None, reason: str = "normal_teardown") -> bool:
-        """Guaranteed cleanup hook for success, failure, and interruption handlers."""
+        """Delete guest computer and clean up tracking."""
         logger.info(f"Executing cleanup for sandbox {sandbox_name} (Reason: {reason})")
         success = True
+
         try:
-            if guest_handle is not None and hasattr(guest_handle, "close"):
-                guest_handle.close()
-            elif guest_handle is not None and hasattr(guest_handle, "stop"):
-                guest_handle.stop()
+            if guest_handle is not None:
+                if hasattr(guest_handle, "delete"):
+                    guest_handle.delete()
+                    logger.info(f"Celesto computer deleted: {sandbox_name}")
+                else:
+                    logger.warning(f"No delete method available for {sandbox_name}")
+                    success = False
+
         except Exception as e:
-            logger.error(f"Error terminating guest handle for {sandbox_name}: {e}")
+            logger.error(f"Error deleting guest computer {sandbox_name}: {e}")
             success = False
 
-        if sandbox_name in self.active_sandboxes:
+        if success and sandbox_name in self.active_sandboxes:
             self.active_sandboxes[sandbox_name]["state"] = RunState.DELETED
             self.active_sandboxes[sandbox_name]["cleanup_reason"] = reason
 

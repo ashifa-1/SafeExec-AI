@@ -274,7 +274,7 @@ def index_dashboard():
           '<tr><td colspan="7">Loading ledger records...</td></tr>';
 
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
+        const timer = setTimeout(() => controller.abort(), 90000);
 
         try {
           const res = await fetch('/api/runs', {

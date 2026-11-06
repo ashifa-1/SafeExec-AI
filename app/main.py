@@ -270,11 +270,27 @@ def index_dashboard():
       async function loadRuns() {
         const tbody = document.getElementById('runsBody');
 
+        tbody.innerHTML =
+          '<tr><td colspan="7">Loading ledger records...</td></tr>';
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
+
         try {
-          const res = await fetch('/api/runs');
+          const res = await fetch('/api/runs', {
+            cache: 'no-store',
+            signal: controller.signal
+          });
+
           const runs = await readResponse(res);
 
           tbody.innerHTML = '';
+
+          if (!runs.length) {
+            tbody.innerHTML =
+              '<tr><td colspan="7">No execution records found.</td></tr>';
+            return;
+          }
 
           runs.forEach(r => {
             const row = document.createElement('tr');
@@ -283,10 +299,10 @@ def index_dashboard():
               <td><code>${r.run_id}</code></td>
               <td><code>${r.sandbox_name}</code></td>
               <td>${r.problem_id}</td>
-              <td><span style="color: #38bdf8">${r.execution_target}</span></td>
-              <td><span style="color: ${r.state === 'succeeded' ? '#4ade80' : '#f87171'}">${r.state}</span></td>
-              <td>${r.success !== null ? (r.success ? '&#10003; True' : '&#10007; False') : '-'}</td>
-              <td>${r.execution_time ? r.execution_time.toFixed(3) : '-'}</td>
+              <td>${r.execution_target}</td>
+              <td style="color:${r.state === 'succeeded' ? '#4ade80' : '#f87171'}">${r.state}</td>
+              <td>${r.success ? '✓ True' : '✗ False'}</td>
+              <td>${Number(r.execution_time).toFixed(3)}</td>
             `;
 
             tbody.appendChild(row);
@@ -294,7 +310,16 @@ def index_dashboard():
 
         } catch (err) {
           console.error('Ledger error:', err);
-          tbody.innerHTML = '<tr><td colspan="7">Unable to load execution history.</td></tr>';
+
+          const message = err.name === 'AbortError'
+            ? 'Ledger request timed out. Please refresh.'
+            : err.message;
+
+          tbody.innerHTML =
+            `<tr><td colspan="7">${message}</td></tr>`;
+
+        } finally {
+          clearTimeout(timer);
         }
       }
 

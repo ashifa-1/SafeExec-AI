@@ -186,8 +186,8 @@ class CelestoSandboxRunner:
                     escaped_code = code.replace("'", "'\\''")
                     guest_cmd = (
                         "if ! command -v python3 >/dev/null 2>&1; then "
-                        "apt-get update -qq && "
-                        "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3; "
+                        "apt-get update -qq >/dev/null 2>&1 && "
+                        "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 >/dev/null 2>&1; "
                         "fi && "
                         f"python3 -c '{escaped_code}'"
                     )

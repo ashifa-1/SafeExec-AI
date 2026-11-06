@@ -310,3 +310,4 @@ def index_dashboard():
 </body>
 </html>"""
     return HTMLResponse(content=html_content)
+

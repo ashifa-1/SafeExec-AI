@@ -126,3 +126,4 @@ class SecurityPolicy:
 
 # Global security policy instance
 security_policy = SecurityPolicy()
+

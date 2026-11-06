@@ -39,3 +39,4 @@ def test_agent_execute_dangerous_task_blocked():
     assert len(response.steps) >= 1
     step_output = response.steps[0].tool_output
     assert step_output.get("blocked") is True or step_output.get("exit_code") != 0
+

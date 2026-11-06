@@ -65,3 +65,4 @@ def test_audit_log_records_both_allowed_and_blocked():
 
     actions = [e["action"] for e in recent_events]
     assert "BLOCKED" in actions
+

@@ -235,3 +235,4 @@ SafeExec AI is fully cloud-ready for platforms such as **Render**, **Railway**, 
    - `CORS_ORIGINS`: Restrict to your domain (e.g., `https://safeexec.yourdomain.com`).
 3. **Execution Target:** Celesto Cloud microVMs remain the actual isolated execution target in production; no microVM runtime is run inside the host container.
 4. **Health Checks:** Configure container platform health checks to probe `GET /health` with a 10s timeout and 3 retries.
+

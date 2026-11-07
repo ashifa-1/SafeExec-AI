@@ -34,17 +34,29 @@ class Settings(BaseModel):
     # Celesto Cloud API
     celesto_api_key: str = Field(default_factory=lambda: os.getenv("CELESTO_API_KEY", ""))
 
-    # OpenAI-compatible LLM
-    llm_base_url: str = Field(default_factory=lambda: os.getenv("LLM_BASE_URL", "https://api.openai.com/v1"))
-    llm_api_key: str = Field(default_factory=lambda: os.getenv("LLM_API_KEY", ""))
-    llm_model: str = Field(default_factory=lambda: os.getenv("LLM_MODEL", "gpt-4o-mini"))
-
     # Database configuration
     database_url: str = Field(
         default_factory=lambda: os.getenv(
             "DATABASE_URL",
             "postgresql://safeexec:safeexec_secret@localhost:5432/safeexec_ledger"
         )
+    )
+
+    # Gemini API (OpenAI-compatible endpoint)
+    llm_base_url: str = Field(
+        default_factory=lambda: os.getenv("LLM_BASE_URL")
+        or "https://generativelanguage.googleapis.com/v1beta/openai"
+    )
+
+    llm_api_key: str = Field(
+        default_factory=lambda: os.getenv("GEMINI_API_KEY")
+        or os.getenv("LLM_API_KEY", "")
+    )
+
+    llm_model: str = Field(
+        default_factory=lambda: os.getenv("GEMINI_MODEL")
+        or os.getenv("LLM_MODEL")
+        or "gemini-3.8-flash"
     )
 
     # Paths
@@ -55,4 +67,3 @@ class Settings(BaseModel):
 
 
 settings = Settings()
-

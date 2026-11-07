@@ -181,7 +181,9 @@ cp .env.example .env
 ```
 Key configuration parameters:
 - `CELESTO_API_KEY`: Your Celesto Cloud API key (if unconfigured, SafeExec AI operates in verified deterministic test mode).
-- `LLM_API_KEY`: OpenAI-compatible API key for agent tool calling (if unconfigured, agent operates in deterministic test mode).
+- `GEMINI_API_KEY`: Gemini API key for the OpenAI-compatible Gemini endpoint. `LLM_API_KEY` can be used as an alternative.
+- `LLM_BASE_URL`: OpenAI-compatible API base URL (defaults to Gemini's endpoint).
+- `LLM_MODEL`: Model name (defaults to `gemini-3.8-flash`).
 - `DATABASE_URL`: PostgreSQL connection string (defaults to local/Docker container).
 
 ### 3. Run Celesto Smoke Test
@@ -222,6 +224,15 @@ Both the `ledger` (PostgreSQL) and `api` (FastAPI) services will automatically p
 | `GET` | `/api/reports` | Returns all parsed submission reports and post-mortem analyses. |
 | `GET` | `/api/audit/logs` | Returns recent auditable security and execution events. |
 | `GET` | `/` | Web dashboard for monitoring runs, agent workflows, and logs. |
+
+Example request:
+```json
+{
+  "task": "Write Python code to calculate the first 10 Fibonacci numbers and run it.",
+  "max_iterations": 5
+}
+```
+Send this JSON to `POST /api/agent/run`. The response includes the model's final answer and each sandbox tool call's captured output. If no LLM key is configured, the endpoint deliberately uses deterministic test mode.
 
 ---
 

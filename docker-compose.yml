@@ -36,9 +36,10 @@ services:
       - PORT=8080
       - HOST=0.0.0.0
       - CELESTO_API_KEY=${CELESTO_API_KEY:-}
-      - LLM_API_KEY=${LLM_API_KEY:-}
-      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.openai.com/v1}
-      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
+      - GEMINI_MODEL=${GEMINI_MODEL:-}
+      - LLM_MODEL=${LLM_MODEL:-gemini-3.8-flash}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
     depends_on:
@@ -54,4 +55,3 @@ services:
 
 volumes:
   ledger_data:
-

@@ -53,7 +53,7 @@ class SafeExecAgent:
     """Autonomous agent executing code tasks exclusively in Celesto sandboxes."""
 
     def __init__(self):
-        self.client = httpx.Client(timeout=60.0)
+        self.client = httpx.Client(timeout=httpx.Timeout(180.0, connect=10.0))
 
     def is_llm_configured(self) -> bool:
         """Verify whether an OpenAI-compatible API key is provided."""
@@ -107,9 +107,18 @@ class SafeExecAgent:
             {
                 "role": "system",
                 "content": (
-                    "You are SafeExec AI, a secure coding assistant. "
-                    "When solving coding or execution tasks, use the `execute_code` tool to run code inside "
-                    "an isolated Celesto sandbox. Never attempt to access the Windows host."
+                    "You are SafeExec AI, an AI coding agent. "
+                    "Understand the user's exact task before writing code. "
+                    "Generate Python code specifically for the requested task. "
+                    "Follow all requested algorithmic constraints, including recursion, iteration, "
+                    "data structures, and output format. "
+                    "Never substitute a different problem or hardcode an unrelated answer. "
+                    "Use the execute_code tool to execute your generated code inside the isolated "
+                    "Celesto sandbox. "
+                    "After execution, inspect the actual stdout, stderr, and exit code. "
+                    "Never claim success if execution failed. "
+                    "Never claim an output that was not produced by execution. "
+                    "Never attempt to execute untrusted code on the application host."
                 )
             },
             {"role": "user", "content": request.task}
@@ -139,17 +148,26 @@ class SafeExecAgent:
 
                 tool_calls = message.get("tool_calls")
                 if not tool_calls:
-                    # Final response reached
                     final_answer = message.get("content", "")
-                    success = True
                     break
 
                 for tool_call in tool_calls:
                     fn = tool_call["function"]
+                    if fn.get("name") != "execute_code":
+                        raise ValueError(f"Unsupported tool requested by model: {fn.get('name')}")
+
                     args = json.loads(fn.get("arguments", "{}"))
-                    code = args.get("code", "")
+                    code = args.get("code")
+                    if not isinstance(code, str) or not code.strip():
+                        raise ValueError("The execute_code tool requires non-empty code.")
+
                     lang = args.get("language", "python")
+                    if lang not in ("python", "bash", "sh"):
+                        raise ValueError(f"Unsupported execution language: {lang}")
                     timeout_s = args.get("timeout_s", 30)
+                    if isinstance(timeout_s, bool) or not isinstance(timeout_s, int):
+                        raise ValueError("The execute_code timeout_s must be an integer.")
+                    timeout_s = min(max(timeout_s, 1), 300)
 
                     # Execute strictly inside Celesto sandbox
                     exec_result = sandbox_runner.execute(
@@ -185,12 +203,32 @@ class SafeExecAgent:
                         "content": json.dumps(tool_output)
                     })
 
-            if not final_answer and steps:
-                final_answer = f"Task completed in {len(steps)} sandbox execution iterations."
-                success = True
+            has_final_answer = bool(final_answer)
+            if not has_final_answer:
+                final_answer = "Agent reached the end of its run without receiving a final answer from the model."
+
+            success = (
+                has_final_answer
+                and bool(steps)
+                and steps[-1].tool_output.get("exit_code") == 0
+                and not steps[-1].tool_output.get("blocked")
+            )
 
             state = RunState.SUCCEEDED if success else RunState.FAILED
 
+        except httpx.HTTPStatusError as e:
+            detail = e.response.text.strip()
+            logger.error(
+                "LLM provider returned HTTP %s: %s",
+                e.response.status_code,
+                detail[:1000]
+            )
+            final_answer = (
+                f"LLM provider returned HTTP {e.response.status_code}: "
+                f"{detail[:1000] or e.response.reason_phrase}"
+            )
+            state = RunState.FAILED
+            success = False
         except Exception as e:
             logger.error(f"Agent execution encountered an error: {e}")
             final_answer = f"Agent failed with error: {str(e)}"
@@ -274,4 +312,3 @@ class SafeExecAgent:
 
 
 agent_runner = SafeExecAgent()
-
